@@ -1588,8 +1588,8 @@ const supabase = {
 // pour les e-mails d'authentification (confirmation, réinitialisation...) — reste toujours correcte
 // quel que soit l'hébergeur réel de l'app (Netlify, GitHub Pages, domaine personnalisé...), sans
 // dépendre du "Site URL" configuré côté dashboard Supabase.
-function urlRedirectionAuth() {
-  return window.location.origin + window.location.pathname;
+function urlRedirectionAuth(admin) {
+  return window.location.origin + window.location.pathname + (admin ? "?admin=1" : "");
 }
 
 function decoderJwtPayload(token) {
@@ -8486,7 +8486,7 @@ function AdminSpace({ signalements: signalementsProp, arbres, onUpdateStatut, on
   async function handleForgot(e) {
     if (e && e.preventDefault) e.preventDefault();
     setError(""); setBusy(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: urlRedirectionAuth() });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: urlRedirectionAuth(true) });
     setBusy(false);
     if (error) { setError(error.message); return; }
     setError("Un e-mail de réinitialisation a été envoyé si ce compte existe.");
@@ -8507,7 +8507,7 @@ function AdminSpace({ signalements: signalementsProp, arbres, onUpdateStatut, on
       setError("Cette adresse n'a pas été autorisée par un administrateur. Demande à un membre de l'équipe de t'ajouter d'abord dans \"Équipe administrateurs\".");
       return;
     }
-    const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: urlRedirectionAuth() } });
+    const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: urlRedirectionAuth(true) } });
     setBusy(false);
     if (error) { setError(error.message); return; }
     setError("E-mail envoyé ! Ouvre le lien reçu pour choisir ton mot de passe et activer ton compte.");
@@ -8539,7 +8539,7 @@ function AdminSpace({ signalements: signalementsProp, arbres, onUpdateStatut, on
           console.error("Notifications indisponibles dans ce contexte :", notifErr);
         }
       } else {
-        const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: urlRedirectionAuth() } });
+        const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: urlRedirectionAuth(true) } });
         if (error) throw error;
         setError("Compte créé. Vérifie ta boîte mail pour confirmer l'adresse, puis connecte-toi.");
       }
